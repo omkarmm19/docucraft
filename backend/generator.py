@@ -33,7 +33,7 @@ Return ONLY a JSON array like this (no extra text):
 ]
 """
     response = client.chat.completions.create(
-        model="llama3-8b-8192",
+        model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
     )
@@ -73,7 +73,7 @@ async def generate_ppt(req):
         tf2.word_wrap = True
         for point in slide_info["points"]:
             p2 = tf2.add_paragraph()
-            p2.text = f"• {point}"
+            p2.text = f"- {point}"
             p2.runs[0].font.size = Pt(20)
             p2.runs[0].font.color.rgb = RGBColor(*theme["text"])
             p2.space_after = Pt(8)
@@ -95,7 +95,7 @@ async def generate_doc(req):
     for slide_info in slides_data:
         doc.add_heading(slide_info["title"], level=1)
         for point in slide_info["points"]:
-            doc.add_paragraph(f"• {point}")
+            doc.add_paragraph(f"- {point}")
         doc.add_paragraph("")
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")
@@ -131,7 +131,7 @@ async def generate_pdf(req):
         pdf.set_font("Helvetica", "", 14)
         for point in slide_info["points"]:
             pdf.set_x(15)
-            pdf.multi_cell(180, 8, f"• {point}")
+            pdf.multi_cell(180, 8, f"- {point}")
             pdf.ln(2)
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
