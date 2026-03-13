@@ -3,7 +3,7 @@ import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { FileText, Presentation, FileDown, Sparkles, Download } from "lucide-react";
 
-const API = "http://127.0.0.1:8000";
+const API = "https://docucraft-production.up.railway.app";
 
 const THEMES = [
   { id: "dark",   label: "Dark",   color: "#00d4ff" },
