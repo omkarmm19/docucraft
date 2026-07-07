@@ -18,7 +18,6 @@
 | 🖥️ Frontend | https://docuucraft.netlify.app |
 | ⚙️ Backend API | https://docucraft-production.up.railway.app |
 | 📖 API Docs | https://docucraft-production.up.railway.app/docs |
-
 ---
 
 ## ✨ Features
