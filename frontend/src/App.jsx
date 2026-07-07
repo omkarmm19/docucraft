@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage      from "./pages/LoginPage";
 import RegisterPage   from "./pages/RegisterPage";
 import GeneratorPage  from "./pages/GeneratorPage";
+import HistoryPage    from "./pages/HistoryPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -13,6 +14,13 @@ export default function App() {
         element={
           <ProtectedRoute>
             <GeneratorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/history"
+        element={
+          <ProtectedRoute>
+            <HistoryPage />
           </ProtectedRoute>
         }
       />

@@ -26,4 +26,6 @@ api.interceptors.response.use(
   }
 );
 
+export const getHistory = () => api.get("/history/");
+
 export default api;

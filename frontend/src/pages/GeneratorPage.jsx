@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { FileText, Presentation, FileDown, Sparkles, Download, LogOut } from "lucide-react";
+import { FileText, Presentation, FileDown, Sparkles, Download, LogOut, History } from "lucide-react";
 import api from "../api";
 
 const THEMES = [
@@ -55,9 +55,18 @@ export default function GeneratorPage() {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <Toaster position="top-right" />
 
-      {/* Top bar: user email + logout */}
+      {/* Top bar: user email + history + logout */}
       <div style={{ position: "fixed", top: "1.2rem", right: "1.5rem", display: "flex", alignItems: "center", gap: "12px" }}>
         <span style={{ color: "#555", fontSize: "0.85rem" }}>{userEmail}</span>
+        <button
+          onClick={() => navigate("/history")}
+          style={{ display: "flex", alignItems: "center", gap: "6px", padding: "7px 14px", borderRadius: "8px", border: "1px solid #ffffff15", background: "#13131a", color: "#888", cursor: "pointer", fontSize: "0.85rem", transition: "all 0.2s" }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = "#00d4ff60"; e.currentTarget.style.color = "#00d4ff"; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = "#ffffff15"; e.currentTarget.style.color = "#888"; }}
+        >
+          <History size={14} />
+          History
+        </button>
         <button
           onClick={handleLogout}
           style={{ display: "flex", alignItems: "center", gap: "6px", padding: "7px 14px", borderRadius: "8px", border: "1px solid #ffffff15", background: "#13131a", color: "#888", cursor: "pointer", fontSize: "0.85rem", transition: "all 0.2s" }}
