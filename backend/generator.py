@@ -9,6 +9,7 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from docx import Document
+from docx.shared import RGBColor as DocxRGB, Pt as DocxPt
 from fpdf import FPDF
 
 load_dotenv()
@@ -92,13 +93,29 @@ async def generate_ppt(req, background_tasks: BackgroundTasks):
 
 async def generate_doc(req, background_tasks: BackgroundTasks):
     slides_data = get_ai_content(req.topic, req.slide_count)
+    theme = THEMES.get(req.theme, THEMES["dark"])
+    title_rgb = DocxRGB(*theme["title"])
+    text_rgb  = DocxRGB(*theme["text"])
 
     doc = Document()
-    doc.add_heading(req.topic, 0)
+
+    # Main title
+    title_para = doc.add_heading(req.topic, 0)
+    for run in title_para.runs:
+        run.font.color.rgb = title_rgb
+
     for slide_info in slides_data:
-        doc.add_heading(slide_info["title"], level=1)
+        # Section heading
+        h = doc.add_heading(slide_info["title"], level=1)
+        for run in h.runs:
+            run.font.color.rgb = title_rgb
+
+        # Bullet points
         for point in slide_info["points"]:
-            doc.add_paragraph(f"- {point}")
+            p = doc.add_paragraph(f"• {point}")
+            for run in p.runs:
+                run.font.color.rgb = text_rgb
+                run.font.size = DocxPt(12)
         doc.add_paragraph("")
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")

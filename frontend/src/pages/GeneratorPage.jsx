@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { FileText, Presentation, FileDown, Sparkles, Download, LogOut, History } from "lucide-react";
 import api from "../api";
@@ -13,12 +13,14 @@ const THEMES = [
 ];
 
 export default function GeneratorPage() {
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const prefill   = location.state || {};
   const userEmail = localStorage.getItem("userEmail") || "User";
 
-  const [topic,      setTopic]      = useState("");
-  const [slideCount, setSlideCount] = useState(8);
-  const [theme,      setTheme]      = useState("dark");
+  const [topic,      setTopic]      = useState(prefill.topic      || "");
+  const [slideCount, setSlideCount] = useState(prefill.slideCount || 8);
+  const [theme,      setTheme]      = useState(prefill.theme      || "dark");
   const [loading,    setLoading]    = useState(null);
 
   function handleLogout() {

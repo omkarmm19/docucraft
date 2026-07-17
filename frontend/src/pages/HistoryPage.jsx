@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, History, FileText, Presentation, FileDown, Trash2, ArrowLeft, Loader } from "lucide-react";
+import { Sparkles, History, FileText, Presentation, FileDown, Trash2, ArrowLeft, Loader, RefreshCw } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { getHistory } from "../api";
 import api from "../api";
@@ -56,6 +56,11 @@ export default function HistoryPage() {
     }
   }
 
+  // Navigate to generator with the record's settings pre-filled
+  function handleRegenerate(r) {
+    navigate("/", { state: { topic: r.topic, theme: r.theme, slideCount: r.slide_count } });
+  }
+
   return (
     <div style={{ minHeight: "100vh", padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
       <Toaster position="top-right" />
@@ -87,13 +92,13 @@ export default function HistoryPage() {
           <History size={20} color="#00d4ff" />
           <h1 style={{ fontSize: "1.4rem", fontWeight: "600", color: "#fff", margin: 0 }}>Generation History</h1>
         </div>
-        <p style={{ color: "#555", fontSize: "0.875rem", margin: 0 }}>Your last 50 document generations</p>
+        <p style={{ color: "#555", fontSize: "0.875rem", margin: 0 }}>Your last 50 document generations — click ↩ to regenerate with the same settings</p>
       </div>
 
       {/* Content */}
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: "4rem" }}>
-          <Loader size={28} color="#00d4ff" style={{ animation: "spin 1s linear infinite" }} />
+          <Loader size={28} color="#00d4ff" className="spin" />
         </div>
       ) : records.length === 0 ? (
         <div style={{ textAlign: "center", padding: "5rem 2rem", background: "#13131a", border: "1px solid #ffffff10", borderRadius: "16px" }}>
@@ -146,15 +151,27 @@ export default function HistoryPage() {
                   </div>
                 </div>
 
+                {/* Regenerate */}
+                <button
+                  onClick={() => handleRegenerate(r)}
+                  title="Regenerate with same settings"
+                  style={{ flexShrink: 0, padding: "7px", borderRadius: "8px", border: "1px solid transparent", background: "transparent", color: "#444", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#00d4ff40"; e.currentTarget.style.color = "#00d4ff"; e.currentTarget.style.background = "#00d4ff10"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.color = "#444"; e.currentTarget.style.background = "transparent"; }}
+                >
+                  <RefreshCw size={15} />
+                </button>
+
                 {/* Delete */}
                 <button
                   onClick={() => handleDelete(r.id)}
                   disabled={deleting === r.id}
+                  title="Delete record"
                   style={{ flexShrink: 0, padding: "7px", borderRadius: "8px", border: "1px solid transparent", background: "transparent", color: "#444", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center" }}
                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#ef444440"; e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.background = "#ef444410"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; e.currentTarget.style.color = "#444"; e.currentTarget.style.background = "transparent"; }}
                 >
-                  {deleting === r.id ? <Loader size={15} style={{ animation: "spin 1s linear infinite" }} /> : <Trash2 size={15} />}
+                  {deleting === r.id ? <Loader size={15} className="spin" /> : <Trash2 size={15} />}
                 </button>
               </div>
             );
