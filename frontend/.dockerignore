@@ -1,0 +1,12 @@
+# Dependency cache
+node_modules/
+
+# Build output (Docker will build this fresh)
+dist/
+
+# Environment files
+.env
+
+# IDE files
+.vscode/
+.idea/
