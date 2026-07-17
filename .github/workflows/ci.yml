@@ -1,0 +1,80 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# DocuCraft CI Pipeline
+# Runs on every push and pull request to the main branch.
+#
+# Two jobs run in parallel:
+#   backend-ci  → installs Python deps + verifies all modules import correctly
+#   frontend-ci → installs Node deps + runs production build
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  backend-ci:
+    name: Backend (Python)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify imports (smoke test)
+        # Set dummy env vars so modules that call os.getenv() on import don't fail
+        env:
+          GROQ_API_KEY:  dummy
+          SECRET_KEY:    dummy-secret-key-for-ci-only
+          DATABASE_URL:  sqlite:///./ci_test.db
+        run: |
+          python -c "import main; print('✅ main.py imports OK')"
+          python -c "import generator; print('✅ generator.py imports OK')"
+          python -c "import auth; print('✅ auth.py imports OK')"
+          python -c "import models; print('✅ models.py imports OK')"
+          python -c "from routers import auth_router, history_router; print('✅ routers import OK')"
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+  frontend-ci:
+    name: Frontend (Node)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
