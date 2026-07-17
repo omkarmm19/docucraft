@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from database import Base
@@ -34,7 +34,7 @@ class GenerationHistory(Base):
 
 class GenerateRequest(BaseModel):
     topic:       str
-    slide_count: int = 8
+    slide_count: int = Field(default=8, ge=4, le=15)
     theme:       str = "dark"
 
 
