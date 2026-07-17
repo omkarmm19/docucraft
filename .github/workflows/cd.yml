@@ -1,0 +1,78 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# DocuCraft CD Pipeline
+# Runs automatically after CI passes on every push to main.
+#
+# Two jobs run in parallel:
+#   backend-cd  → builds Docker image → pushes to Docker Hub → triggers Render
+#   frontend-cd → builds Docker image → pushes to Docker Hub → triggers Netlify
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]        # Waits for CI to pass first
+    types: [completed]
+    branches: [main]
+
+jobs:
+
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  backend-cd:
+    name: Backend — Build, Push & Deploy
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/docucraft-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/docucraft-backend:${{ github.sha }}
+
+      - name: Trigger Render deploy
+        run: |
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}" \
+            -o /dev/null -w "Render status: %{http_code}\n"
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+  frontend-cd:
+    name: Frontend — Build, Push & Deploy
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/docucraft-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/docucraft-frontend:${{ github.sha }}
+
+      - name: Trigger Netlify deploy
+        run: |
+          curl -s -X POST "${{ secrets.NETLIFY_DEPLOY_HOOK_FRONTEND }}" \
+            -o /dev/null -w "Netlify status: %{http_code}\n"
