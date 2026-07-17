@@ -53,6 +53,14 @@ jobs:
           python -c "import models; print('✅ models.py imports OK')"
           python -c "from routers import auth_router, history_router; print('✅ routers import OK')"
 
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false          # Only build — no registry push needed in CI
+          tags: docucraft-backend:ci
+
+
   # ── Frontend ─────────────────────────────────────────────────────────────────
   frontend-ci:
     name: Frontend (Node)
