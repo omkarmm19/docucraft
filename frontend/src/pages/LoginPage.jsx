@@ -19,8 +19,8 @@ export default function LoginPage() {
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("token",     res.data.access_token);
       localStorage.setItem("userEmail", email);
-      toast.success("Welcome back! 🎉");
-      navigate("/");
+      toast.success("Login successful!");
+      navigate("/app");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Invalid email or password");
     } finally {

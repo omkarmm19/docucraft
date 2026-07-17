@@ -58,7 +58,7 @@ export default function HistoryPage() {
 
   // Navigate to generator with the record's settings pre-filled
   function handleRegenerate(r) {
-    navigate("/", { state: { topic: r.topic, theme: r.theme, slideCount: r.slide_count } });
+    navigate("/app", { state: { topic: r.topic, theme: r.theme, slideCount: r.slide_count } });
   }
 
   return (
@@ -76,7 +76,7 @@ export default function HistoryPage() {
           </span>
         </div>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/app")}
           style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 16px", borderRadius: "8px", border: "1px solid #ffffff20", background: "#13131a", color: "#aaa", cursor: "pointer", fontSize: "0.875rem", transition: "all 0.2s" }}
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#00d4ff60"; e.currentTarget.style.color = "#00d4ff"; }}
           onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#ffffff20"; e.currentTarget.style.color = "#aaa"; }}
@@ -106,7 +106,7 @@ export default function HistoryPage() {
           <p style={{ color: "#444", fontSize: "1rem" }}>No generations yet</p>
           <p style={{ color: "#333", fontSize: "0.85rem", marginTop: "4px" }}>Generate a PPT, DOC or PDF to see it here</p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/app")}
             style={{ marginTop: "1.5rem", padding: "10px 24px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", color: "#fff", fontWeight: "600", cursor: "pointer", fontSize: "0.9rem" }}
           >
             Generate Now

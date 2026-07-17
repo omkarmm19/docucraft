@@ -22,8 +22,8 @@ export default function RegisterPage() {
       const res = await api.post("/auth/register", { email, password });
       localStorage.setItem("token",     res.data.access_token);
       localStorage.setItem("userEmail", email);
-      toast.success("Account created! Welcome to DocuCraft 🎉");
-      navigate("/");
+      toast.success("Registration successful!");
+      navigate("/app");
     } catch (err) {
       toast.error(err.response?.data?.detail || "Registration failed. Try again.");
     } finally {
