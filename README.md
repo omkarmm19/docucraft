@@ -5,6 +5,7 @@
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-docuucraft.netlify.app-00d4ff?style=for-the-badge&logo=netlify&logoColor=white)](https://docuucraft.netlify.app)
 [![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://docucraft-backend.onrender.com)
 [![CI](https://github.com/omkarmm19/docucraft/actions/workflows/ci.yml/badge.svg)](https://github.com/omkarmm19/docucraft/actions/workflows/ci.yml)
+[![CD](https://github.com/omkarmm19/docucraft/actions/workflows/cd.yml/badge.svg)](https://github.com/omkarmm19/docucraft/actions/workflows/cd.yml)
 [![GitHub](https://img.shields.io/badge/GitHub-omkarmm19-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/omkarmm19/docucraft)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.135-009688?style=for-the-badge&logo=fastapi&logoColor=white)
@@ -93,7 +94,9 @@ docucraft/
 │   ├── Dockerfile               # Multi-stage Node build -> Nginx serve
 │   └── nginx.conf               # Nginx SPA fallback configuration
 │
-├── .github/workflows/ci.yml     # CI/CD Pipeline (Build & Test)
+├── .github/workflows/
+│   ├── ci.yml                   # CI — smoke tests + Docker build verification
+│   └── cd.yml                   # CD — Docker Hub push + Render/Netlify deploy
 ├── docker-compose.yml           # One-command full-stack orchestration
 └── README.md
 ```
@@ -159,14 +162,30 @@ https://docucraft-backend.onrender.com
 
 ## 🚢 CI/CD & Deployment
 
-This project uses **GitHub Actions** for Continuous Integration. On every push to the `main` branch, the pipeline:
-1. Runs a Python smoke test on all backend imports.
-2. Builds the backend Docker image.
-3. Builds the production frontend Vite bundle.
+### Continuous Integration — [`ci.yml`](.github/workflows/ci.yml)
+Runs on every push and pull request to `main`:
+1. ✅ Python smoke test — verifies all backend modules import correctly
+2. ✅ Builds backend Docker image (no push)
+3. ✅ Installs Node dependencies + builds production frontend bundle
 
-Continuous Deployment is handled natively:
-- **Backend:** Hosted on [Render](https://render.com) using the `render.yaml` infrastructure-as-code configuration. Auto-deploys on `main` branch updates.
-- **Frontend:** Hosted on [Netlify](https://netlify.com). Auto-builds and deploys the static React app.
+### Continuous Deployment — [`cd.yml`](.github/workflows/cd.yml)
+Triggers automatically **after CI passes** on `main`. Two jobs run in parallel:
+
+| Job | Steps |
+|-----|-------|
+| `backend-cd` | Build Docker image → Push to Docker Hub → Trigger Render deploy |
+| `frontend-cd` | Build Docker image → Push to Docker Hub → Trigger Netlify deploy |
+
+### Docker Hub Images
+| Image | Link |
+|-------|------|
+| Backend | `docker pull omkarmm19/docucraft-backend:latest` |
+| Frontend | `docker pull omkarmm19/docucraft-frontend:latest` |
+
+### Hosting
+- **Backend:** [Render](https://render.com) — auto-deploys via deploy hook triggered by CD pipeline
+- **Frontend:** [Netlify](https://netlify.com) — auto-deploys via build hook triggered by CD pipeline
+- **Database:** [Neon](https://neon.tech) — serverless PostgreSQL (free, no expiry)
 
 ---
 
@@ -188,8 +207,10 @@ Continuous Deployment is handled natively:
 - [x] Regenerate documents with one click
 
 ### ✅ v1.3 — DevOps & CI/CD
-- [x] GitHub Actions CI pipeline
-- [x] Dockerfile for containerized backend & frontend
+- [x] GitHub Actions CI pipeline (smoke tests + build verification)
+- [x] GitHub Actions CD pipeline (Docker Hub push + auto-deploy)
+- [x] Docker images published to Docker Hub on every release
+- [x] Dockerfile for containerized backend & frontend (multi-stage builds)
 - [x] Docker Compose for local full-stack development
 - [x] Nginx configuration for SPA routing
 
