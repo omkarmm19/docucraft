@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Sparkles, FileText, Presentation, FileDown, Zap, Shield, Wand2, ArrowRight } from "lucide-react";
+import { Sparkles, Presentation, Zap, Shield, ArrowRight } from "lucide-react";
 
 export default function LandingPage() {
   const navigate = useNavigate();
