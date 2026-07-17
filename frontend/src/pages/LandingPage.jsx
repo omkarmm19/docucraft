@@ -10,7 +10,10 @@ export default function LandingPage() {
       
       {/* Navbar */}
       <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem 3rem", borderBottom: "1px solid #ffffff15", background: "rgba(10, 10, 15, 0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div 
+          onClick={() => navigate("/")}
+          style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
+        >
           <Sparkles size={24} color="#00d4ff" />
           <span style={{ fontSize: "1.5rem", fontWeight: "700", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             DocuCraft
@@ -50,11 +53,11 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section style={{ padding: "8rem 2rem", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "999px", background: "#ffffff0a", border: "1px solid #ffffff15", color: "#00d4ff", fontSize: "0.875rem", fontWeight: "500", marginBottom: "2rem" }}>
-          <Sparkles size={16} /> Powered by Groq Llama-3 70B
+          <Sparkles size={16} /> Intelligent Document Generation Platform
         </div>
         <h1 style={{ fontSize: "4.5rem", fontWeight: "800", lineHeight: "1.1", marginBottom: "1.5rem", maxWidth: "900px" }}>
           Generate beautiful documents <br />
-          <span style={{ background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>in seconds using AI.</span>
+          <span style={{ background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>in seconds.</span>
         </h1>
         <p style={{ fontSize: "1.25rem", color: "#a1a1aa", maxWidth: "600px", marginBottom: "3rem", lineHeight: "1.6" }}>
           Instantly transform any topic into fully formatted PowerPoint presentations, Word documents, or PDFs. Just type a prompt and download your file.
@@ -95,7 +98,7 @@ export default function LandingPage() {
                 <Zap size={24} />
               </div>
               <h3 style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.75rem" }}>Lightning Fast Generation</h3>
-              <p style={{ color: "#a1a1aa", lineHeight: "1.6" }}>Powered by Groq's Llama-3 API, ensuring insanely fast inference and near-instant document delivery.</p>
+              <p style={{ color: "#a1a1aa", lineHeight: "1.6" }}>High-performance generative pipeline ensuring ultra-fast output and instant document delivery.</p>
             </div>
 
             {/* Card 3 */}
@@ -113,7 +116,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer style={{ padding: "3rem 2rem", textAlign: "center", borderTop: "1px solid #ffffff10", color: "#555" }}>
-        <p>© 2026 DocuCraft. Built with ❤️ using AI.</p>
+        <p>© 2026 DocuCraft. Intelligent Document Suite. All rights reserved.</p>
       </footer>
     </div>
   );

@@ -67,7 +67,10 @@ export default function HistoryPage() {
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2.5rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div 
+          onClick={() => navigate("/")}
+          style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }}
+        >
           <Sparkles size={24} color="#00d4ff" />
           <span
             style={{ fontSize: "1.6rem", fontWeight: "700", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}

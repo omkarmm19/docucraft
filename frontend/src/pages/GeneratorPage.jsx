@@ -82,13 +82,16 @@ export default function GeneratorPage() {
 
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", marginBottom: "1rem" }}>
+        <div 
+          onClick={() => navigate("/")}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "12px", marginBottom: "1rem", cursor: "pointer" }}
+        >
           <Sparkles size={32} color="#00d4ff" />
           <h1 style={{ fontSize: "3rem", fontWeight: "700", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             DocuCraft
           </h1>
         </div>
-        <p style={{ color: "#888", fontSize: "1.1rem" }}>AI-powered document generator — PPT, DOC &amp; PDF in seconds</p>
+        <p style={{ color: "#888", fontSize: "1.1rem" }}>Next-gen document generator — PPT, DOC &amp; PDF in seconds</p>
       </div>
 
       {/* Card */}
@@ -146,7 +149,7 @@ export default function GeneratorPage() {
         </div>
       </div>
 
-      <p style={{ color: "#444", fontSize: "0.8rem", marginTop: "2rem" }}>Powered by Groq Llama-3 • DocuCraft 2025</p>
+      <p style={{ color: "#444", fontSize: "0.8rem", marginTop: "2rem" }}>© 2026 DocuCraft. Intelligent Document Suite.</p>
     </div>
   );
 }

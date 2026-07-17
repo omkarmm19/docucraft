@@ -54,7 +54,10 @@ export default function RegisterPage() {
 
       {/* Logo */}
       <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "0.5rem" }}>
+        <div 
+          onClick={() => navigate("/")}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "0.5rem", cursor: "pointer" }}
+        >
           <Sparkles size={28} color="#00d4ff" />
           <h1 style={{ fontSize: "2.2rem", fontWeight: "700", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             DocuCraft
