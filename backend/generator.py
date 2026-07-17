@@ -4,6 +4,7 @@ import tempfile
 from dotenv import load_dotenv
 from groq import Groq
 from fastapi.responses import FileResponse
+from fastapi import BackgroundTasks
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
@@ -45,7 +46,7 @@ Return ONLY a JSON array like this (no extra text):
     return json.loads(raw.strip())
 
 
-async def generate_ppt(req):
+async def generate_ppt(req, background_tasks: BackgroundTasks):
     slides_data = get_ai_content(req.topic, req.slide_count)
     theme = THEMES.get(req.theme, THEMES["dark"])
 
@@ -80,14 +81,16 @@ async def generate_ppt(req):
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pptx")
     prs.save(tmp.name)
+    background_tasks.add_task(os.unlink, tmp.name)
     return FileResponse(
         tmp.name,
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        filename=f"{req.topic}.pptx"
+        filename=f"{req.topic}.pptx",
+        background=background_tasks,
     )
 
 
-async def generate_doc(req):
+async def generate_doc(req, background_tasks: BackgroundTasks):
     slides_data = get_ai_content(req.topic, req.slide_count)
 
     doc = Document()
@@ -100,14 +103,16 @@ async def generate_doc(req):
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")
     doc.save(tmp.name)
+    background_tasks.add_task(os.unlink, tmp.name)
     return FileResponse(
         tmp.name,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        filename=f"{req.topic}.docx"
+        filename=f"{req.topic}.docx",
+        background=background_tasks,
     )
 
 
-async def generate_pdf(req):
+async def generate_pdf(req, background_tasks: BackgroundTasks):
     slides_data = get_ai_content(req.topic, req.slide_count)
     theme = THEMES.get(req.theme, THEMES["dark"])
 
@@ -136,8 +141,10 @@ async def generate_pdf(req):
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(tmp.name)
+    background_tasks.add_task(os.unlink, tmp.name)
     return FileResponse(
         tmp.name,
         media_type="application/pdf",
-        filename=f"{req.topic}.pdf"
+        filename=f"{req.topic}.pdf",
+        background=background_tasks,
     )

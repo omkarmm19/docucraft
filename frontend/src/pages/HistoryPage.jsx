@@ -43,6 +43,7 @@ export default function HistoryPage() {
   }, []);
 
   async function handleDelete(id) {
+    if (!window.confirm("Delete this record? This can't be undone.")) return;
     setDeleting(id);
     try {
       await api.delete(`/history/${id}`);
@@ -161,7 +162,6 @@ export default function HistoryPage() {
         </div>
       )}
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

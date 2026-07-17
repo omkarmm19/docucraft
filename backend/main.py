@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -48,32 +48,35 @@ def save_history(db: Session, user_id: int, req: GenerateRequest, doc_type: str)
 # ── Protected generation routes ───────────────────────────────────────────────
 @app.post("/generate/ppt")
 async def create_ppt(
-    req:          GenerateRequest,
-    current_user  = Depends(get_current_user),
-    db: Session   = Depends(get_db),
+    req:              GenerateRequest,
+    background_tasks: BackgroundTasks,
+    current_user      = Depends(get_current_user),
+    db: Session       = Depends(get_db),
 ):
-    response = await generate_ppt(req)
+    response = await generate_ppt(req, background_tasks)
     save_history(db, current_user.id, req, "ppt")
     return response
 
 
 @app.post("/generate/doc")
 async def create_doc(
-    req:          GenerateRequest,
-    current_user  = Depends(get_current_user),
-    db: Session   = Depends(get_db),
+    req:              GenerateRequest,
+    background_tasks: BackgroundTasks,
+    current_user      = Depends(get_current_user),
+    db: Session       = Depends(get_db),
 ):
-    response = await generate_doc(req)
+    response = await generate_doc(req, background_tasks)
     save_history(db, current_user.id, req, "doc")
     return response
 
 
 @app.post("/generate/pdf")
 async def create_pdf(
-    req:          GenerateRequest,
-    current_user  = Depends(get_current_user),
-    db: Session   = Depends(get_db),
+    req:              GenerateRequest,
+    background_tasks: BackgroundTasks,
+    current_user      = Depends(get_current_user),
+    db: Session       = Depends(get_db),
 ):
-    response = await generate_pdf(req)
+    response = await generate_pdf(req, background_tasks)
     save_history(db, current_user.id, req, "pdf")
     return response
