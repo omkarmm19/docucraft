@@ -149,7 +149,7 @@ export default function GeneratorPage() {
         </div>
       </div>
 
-      <p style={{ color: "#444", fontSize: "0.8rem", marginTop: "2rem" }}>© 2026 DocuCraft. Intelligent Document Suite.</p>
+      <p style={{ color: "#444", fontSize: "0.8rem", marginTop: "2rem" }}>© 2026 DocuCraft by Omkar Mahesh. All rights reserved.</p>
     </div>
   );
 }

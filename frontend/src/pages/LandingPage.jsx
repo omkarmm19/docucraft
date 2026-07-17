@@ -116,7 +116,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer style={{ padding: "3rem 2rem", textAlign: "center", borderTop: "1px solid #ffffff10", color: "#555" }}>
-        <p>© 2026 DocuCraft. Intelligent Document Suite. All rights reserved.</p>
+        <p>© 2026 DocuCraft by Omkar Mahesh. All rights reserved.</p>
       </footer>
     </div>
   );
