@@ -27,9 +27,14 @@ app.include_router(history_router)
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"message": "DocuCraft API is running 🚀"}
+
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+def health():
+    return {"status": "ok", "message": "DocuCraft API is healthy"}
 
 
 # ── Helper: save a generation record ─────────────────────────────────────────
