@@ -1,6 +1,7 @@
 import os
 import json
 import tempfile
+import unicodedata
 from datetime import datetime
 from dotenv import load_dotenv
 from groq import Groq
@@ -17,8 +18,8 @@ from docx import Document
 from docx.shared import Inches as DocxInches, Pt as DocxPt, RGBColor as DocxRGB
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.oxml import parse_xml, OxmlElement
-from docx.oxml.ns import nsdecls, qn
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls
 
 from fpdf import FPDF
 
@@ -29,16 +30,18 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 PRIMARY_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 FALLBACK_MODEL = "openai/gpt-oss-20b"
 
-# ─── Color Themes ─────────────────────────────────────────────────────────────
-THEMES = {
+# ─── Color Themes Per Document Type ───────────────────────────────────────────
+
+# Themes for Presentations (Full slide backgrounds & cards)
+PPT_THEMES = {
     "dark": {
         "bg": (14, 14, 16),
         "card_bg": (24, 24, 28),
         "border": (45, 45, 52),
         "accent": (232, 160, 32),       # Amber
         "title": (255, 255, 255),
-        "text": (180, 180, 190),
-        "muted": (120, 120, 130),
+        "text": (190, 195, 205),
+        "muted": (130, 135, 145),
     },
     "blue": {
         "bg": (10, 18, 34),
@@ -46,8 +49,8 @@ THEMES = {
         "border": (30, 50, 85),
         "accent": (59, 130, 246),       # Modern Blue
         "title": (255, 255, 255),
-        "text": (195, 215, 240),
-        "muted": (115, 145, 180),
+        "text": (205, 220, 245),
+        "muted": (130, 155, 190),
     },
     "green": {
         "bg": (10, 24, 16),
@@ -55,8 +58,8 @@ THEMES = {
         "border": (28, 62, 42),
         "accent": (20, 184, 166),       # Teal
         "title": (255, 255, 255),
-        "text": (190, 230, 215),
-        "muted": (110, 165, 145),
+        "text": (200, 235, 220),
+        "muted": (125, 175, 155),
     },
     "purple": {
         "bg": (20, 14, 32),
@@ -64,19 +67,152 @@ THEMES = {
         "border": (54, 38, 82),
         "accent": (168, 85, 247),       # Purple
         "title": (255, 255, 255),
-        "text": (225, 205, 245),
-        "muted": (145, 125, 175),
+        "text": (230, 215, 250),
+        "muted": (155, 135, 185),
     },
     "light": {
         "bg": (248, 249, 250),
         "card_bg": (255, 255, 255),
-        "border": (222, 226, 230),
+        "border": (220, 225, 232),
         "accent": (217, 119, 6),        # Warm Amber for light mode
-        "title": (20, 24, 30),
-        "text": (65, 75, 85),
-        "muted": (130, 140, 150),
+        "title": (20, 24, 32),
+        "text": (70, 80, 95),
+        "muted": (120, 130, 145),
     },
 }
+
+# Themes for Word Documents (Professional white/light paper with theme accents)
+DOC_THEMES = {
+    "dark": {
+        "accent": DocxRGB(217, 119, 6),      # Deep Amber Accent
+        "title": DocxRGB(17, 24, 39),        # Charcoal
+        "heading": DocxRGB(217, 119, 6),    # Amber
+        "text": DocxRGB(55, 65, 81),         # High-contrast readable body text
+        "muted": DocxRGB(107, 114, 128),     # Slate Grey
+        "box_bg": "F3F4F6",                  # Clean Light Gray Callout
+        "box_border": "D97706",
+    },
+    "blue": {
+        "accent": DocxRGB(37, 99, 235),      # Royal Blue
+        "title": DocxRGB(15, 23, 42),        # Dark Navy
+        "heading": DocxRGB(37, 99, 235),     # Royal Blue
+        "text": DocxRGB(51, 65, 85),         # Slate body text
+        "muted": DocxRGB(100, 116, 139),
+        "box_bg": "EFF6FF",                  # Light Blue Callout
+        "box_border": "2563EB",
+    },
+    "green": {
+        "accent": DocxRGB(13, 148, 136),     # Teal
+        "title": DocxRGB(6, 78, 59),         # Deep Emerald
+        "heading": DocxRGB(13, 148, 136),    # Teal
+        "text": DocxRGB(55, 65, 81),
+        "muted": DocxRGB(100, 116, 139),
+        "box_bg": "F0FDF4",                  # Light Emerald Callout
+        "box_border": "0D9488",
+    },
+    "purple": {
+        "accent": DocxRGB(124, 58, 237),     # Violet
+        "title": DocxRGB(59, 7, 100),        # Deep Purple
+        "heading": DocxRGB(124, 58, 237),    # Violet
+        "text": DocxRGB(55, 65, 81),
+        "muted": DocxRGB(107, 114, 128),
+        "box_bg": "FAF5FF",                  # Light Violet Callout
+        "box_border": "7C3AED",
+    },
+    "light": {
+        "accent": DocxRGB(71, 85, 105),      # Slate
+        "title": DocxRGB(15, 23, 42),
+        "heading": DocxRGB(51, 65, 85),
+        "text": DocxRGB(55, 65, 81),
+        "muted": DocxRGB(148, 163, 184),
+        "box_bg": "F8FAFC",
+        "box_border": "64748B",
+    },
+}
+
+# Themes for PDF Documents (Consistent background on every page)
+PDF_THEMES = {
+    "dark": {
+        "is_dark": True,
+        "bg": (14, 14, 18),
+        "card_bg": (22, 22, 28),
+        "border": (45, 45, 56),
+        "accent": (232, 160, 32),       # Amber
+        "title": (255, 255, 255),
+        "heading": (232, 160, 32),
+        "text": (215, 220, 230),        # Crisp High-Contrast Light Grey
+        "muted": (140, 145, 160),
+    },
+    "blue": {
+        "is_dark": True,
+        "bg": (10, 18, 34),
+        "card_bg": (16, 28, 52),
+        "border": (30, 52, 90),
+        "accent": (59, 130, 246),
+        "title": (255, 255, 255),
+        "heading": (96, 165, 250),
+        "text": (215, 230, 250),
+        "muted": (140, 165, 195),
+    },
+    "green": {
+        "is_dark": True,
+        "bg": (10, 24, 18),
+        "card_bg": (18, 38, 28),
+        "border": (28, 65, 45),
+        "accent": (20, 184, 166),
+        "title": (255, 255, 255),
+        "heading": (45, 212, 191),
+        "text": (210, 240, 230),
+        "muted": (135, 175, 160),
+    },
+    "purple": {
+        "is_dark": True,
+        "bg": (20, 14, 32),
+        "card_bg": (32, 22, 50),
+        "border": (56, 40, 84),
+        "accent": (168, 85, 247),
+        "title": (255, 255, 255),
+        "heading": (192, 132, 252),
+        "text": (235, 225, 250),
+        "muted": (160, 140, 190),
+    },
+    "light": {
+        "is_dark": False,
+        "bg": (255, 255, 255),
+        "card_bg": (248, 250, 252),
+        "border": (226, 232, 240),
+        "accent": (217, 119, 6),
+        "title": (15, 23, 42),
+        "heading": (217, 119, 6),
+        "text": (51, 65, 85),
+        "muted": (100, 116, 139),
+    },
+}
+
+
+# ─── Robust Unicode Sanitizer for PDF ─────────────────────────────────────────
+def clean_pdf_text(text: str) -> str:
+    """Normalizes all unicode characters (dashes, quotes, spaces, math symbols) to safe ASCII."""
+    if not text or not isinstance(text, str):
+        return ""
+    
+    char_map = {
+        "\u2018": "'", "\u2019": "'", "\u201a": "'", "\u201b": "'",
+        "\u201c": '"', "\u201d": '"', "\u201e": '"', "\u201f": '"',
+        "\u2013": "-", "\u2014": " - ", "\u2015": " - ", "\u2010": "-", "\u2011": "-", "\u2012": "-", "\u2212": "-",
+        "\u2026": "...", "\u2022": "*", "\u00b7": "*", "\u25cf": "*", "\u25cb": "*",
+        "\u00d7": "x", "\u2715": "x", "\u2716": "x",
+        "\u00a0": " ", "\u202f": " ", "\u2009": " ", "\u200a": " ", "\u200b": "", "\ufeff": "",
+        "\u2192": "->", "\u2190": "<-", "\u21d2": "=>", "\u203a": ">", "\u00bb": ">>", "\u00ab": "<<",
+        "\u2002": " ", "\u2003": " ", "\u2004": " ", "\u2005": " ", "\u2006": " ", "\u2007": " ", "\u2008": " ",
+        "\u2044": "/", "\u2215": "/", "\u2032": "'", "\u2033": '"',
+        "\u2264": "<=", "\u2265": ">=", "\u2260": "!=", "\u2248": "~",
+    }
+    for orig, repl in char_map.items():
+        text = text.replace(orig, repl)
+        
+    text = unicodedata.normalize("NFKD", text)
+    return text.encode("ascii", "ignore").decode("ascii")
 
 
 # ─── Robust AI Query Helper ───────────────────────────────────────────────────
@@ -84,6 +220,7 @@ def query_groq(prompt: str) -> dict:
     try:
         response = client.chat.completions.create(
             model=PRIMARY_MODEL,
+            response_format={"type": "json_object"},
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
         )
@@ -91,42 +228,26 @@ def query_groq(prompt: str) -> dict:
         print(f"Primary model {PRIMARY_MODEL} failed ({e}), using {FALLBACK_MODEL}")
         response = client.chat.completions.create(
             model=FALLBACK_MODEL,
+            response_format={"type": "json_object"},
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
         )
 
     raw = response.choices[0].message.content.strip()
-    if "```" in raw:
-        parts = raw.split("```")
-        raw = parts[1] if len(parts) > 1 else raw
-        if raw.startswith("json"):
-            raw = raw[4:]
-
-    raw = raw.strip()
-    first_brace = raw.find("{")
-    last_brace = raw.rfind("}")
-    first_bracket = raw.find("[")
-    last_bracket = raw.rfind("]")
-
-    if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
-        raw = raw[first_brace:last_brace + 1]
-    elif first_bracket != -1:
-        raw = raw[first_bracket:last_bracket + 1]
-
     return json.loads(raw)
 
 
 # ─── 1. POWERPOINT GENERATION (Structured 16:9 Multi-Card Deck) ───────────────
 def get_ppt_ai_content(topic: str, slide_count: int) -> dict:
     prompt = f"""
-You are an executive document designer. Create an exhaustive, highly structured presentation deck on: "{topic}".
+You are an executive presentation designer. Create an exhaustive, highly structured presentation deck on: "{topic}".
 Target length: {slide_count} slides total.
 
 Return ONLY a JSON object with this exact structure:
 {{
   "deck_title": "Concise Main Title",
   "deck_subtitle": "Comprehensive professional subtitle explaining the core objective",
-  "category": "CATEGORY TAG (e.g. SYSTEM ARCHITECTURE / EXECUTIVE STRATEGY)",
+  "category": "CATEGORY TAG (e.g. SYSTEM ARCHITECTURE / STRATEGIC OVERVIEW)",
   "slides": [
     {{
       "title": "Specific Slide Title",
@@ -158,7 +279,7 @@ Ensure details are rich, informative, and professional. No placeholder text.
 
 async def generate_ppt(req, background_tasks: BackgroundTasks):
     data = get_ppt_ai_content(req.topic, req.slide_count)
-    theme = THEMES.get(req.theme, THEMES["dark"])
+    theme = PPT_THEMES.get(req.theme, PPT_THEMES["dark"])
 
     prs = Presentation()
     prs.slide_width = Inches(13.333)
@@ -300,7 +421,7 @@ async def generate_ppt(req, background_tasks: BackgroundTasks):
         foot_box = s.shapes.add_textbox(Inches(10.0), Inches(6.8), Inches(2.5), Inches(0.4))
         p_foot = foot_box.text_frame.paragraphs[0]
         p_foot.alignment = PP_ALIGN.RIGHT
-        p_foot.text = f"{String(idx).padStart(2, '0') if 'String' in globals() else f'{idx:02d}'} / {total_slides:02d}"
+        p_foot.text = f"{idx:02d} / {total_slides:02d}"
         p_foot.runs[0].font.size = Pt(10)
         p_foot.runs[0].font.color.rgb = RGBColor(*theme["muted"])
 
@@ -315,7 +436,7 @@ async def generate_ppt(req, background_tasks: BackgroundTasks):
     )
 
 
-# ─── 2. WORD DOCUMENT GENERATION (Rich Technical Report / Guide) ─────────────
+# ─── 2. WORD DOCUMENT GENERATION (Technical Whitepaper) ───────────────────────
 def get_doc_ai_content(topic: str, section_count: int) -> dict:
     prompt = f"""
 You are a senior technical writer and research analyst. Produce an in-depth, publication-ready technical whitepaper on: "{topic}".
@@ -361,17 +482,12 @@ def set_cell_background(cell, fill_hex: str):
 
 async def generate_doc(req, background_tasks: BackgroundTasks):
     data = get_doc_ai_content(req.topic, req.slide_count)
-    theme = THEMES.get(req.theme, THEMES["dark"])
-    accent_rgb = DocxRGB(*theme["accent"])
-    title_rgb = DocxRGB(*theme["title"])
-    text_rgb = DocxRGB(*theme["text"])
-    muted_rgb = DocxRGB(*theme["muted"])
+    theme = DOC_THEMES.get(req.theme, DOC_THEMES["dark"])
 
     doc = Document()
 
     # Set 1-inch margins
-    sections = doc.sections
-    for section in sections:
+    for section in doc.sections:
         section.top_margin = DocxInches(1.0)
         section.bottom_margin = DocxInches(1.0)
         section.left_margin = DocxInches(1.0)
@@ -383,24 +499,24 @@ async def generate_doc(req, background_tasks: BackgroundTasks):
     p_title.paragraph_format.space_after = DocxPt(4)
     r_title = p_title.add_run(data.get("title", req.topic))
     r_title.font.name = "Arial"
-    r_title.font.size = DocxPt(26)
+    r_title.font.size = DocxPt(24)
     r_title.font.bold = True
-    r_title.font.color.rgb = accent_rgb
+    r_title.font.color.rgb = theme["title"]
 
     p_sub = doc.add_paragraph()
-    p_sub.paragraph_format.space_after = DocxPt(16)
-    r_sub = p_sub.add_run(data.get("subtitle", "Technical Overview and Operational Guide"))
+    p_sub.paragraph_format.space_after = DocxPt(14)
+    r_sub = p_sub.add_run(data.get("subtitle", "Technical Overview and Strategic Insights"))
     r_sub.font.name = "Arial"
-    r_sub.font.size = DocxPt(13)
-    r_sub.font.color.rgb = muted_rgb
+    r_sub.font.size = DocxPt(12)
+    r_sub.font.color.rgb = theme["muted"]
 
     # ── Metadata Line ─────────────────────────────────────────────────────────
     p_meta = doc.add_paragraph()
-    p_meta.paragraph_format.space_after = DocxPt(18)
+    p_meta.paragraph_format.space_after = DocxPt(16)
     r_meta = p_meta.add_run(f"Prepared by DocuCraft AI Engine  |  {datetime.now().strftime('%B %d, %Y')}  |  Confidential")
     r_meta.font.size = DocxPt(9.5)
     r_meta.font.italic = True
-    r_meta.font.color.rgb = muted_rgb
+    r_meta.font.color.rgb = theme["muted"]
 
     # ── Executive Summary Callout Box ─────────────────────────────────────────
     exec_summary = data.get("executive_summary", "")
@@ -408,19 +524,19 @@ async def generate_doc(req, background_tasks: BackgroundTasks):
         tbl = doc.add_table(rows=1, cols=1)
         tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
         cell = tbl.cell(0, 0)
-        set_cell_background(cell, "F3F4F6" if req.theme == "light" else "1E2028")
+        set_cell_background(cell, theme["box_bg"])
         
         cp = cell.paragraphs[0]
         cp.paragraph_format.space_before = DocxPt(8)
-        cp.paragraph_format.space_after = DocxPt(4)
+        cp.paragraph_format.space_after = DocxPt(6)
         r_ex_lbl = cp.add_run("EXECUTIVE SUMMARY\n")
         r_ex_lbl.font.size = DocxPt(10)
         r_ex_lbl.font.bold = True
-        r_ex_lbl.font.color.rgb = accent_rgb
+        r_ex_lbl.font.color.rgb = theme["accent"]
 
         r_ex_txt = cp.add_run(exec_summary)
         r_ex_txt.font.size = DocxPt(10.5)
-        r_ex_txt.font.color.rgb = text_rgb if req.theme != "light" else DocxRGB(50, 50, 50)
+        r_ex_txt.font.color.rgb = theme["text"]
         doc.add_paragraph().paragraph_format.space_after = DocxPt(12)
 
     # ── Sections ──────────────────────────────────────────────────────────────
@@ -430,9 +546,9 @@ async def generate_doc(req, background_tasks: BackgroundTasks):
         h.paragraph_format.space_before = DocxPt(16)
         h.paragraph_format.space_after = DocxPt(6)
         r_h = h.add_run(sec.get("heading", "Section"))
-        r_h.font.size = DocxPt(16)
+        r_h.font.size = DocxPt(15)
         r_h.font.bold = True
-        r_h.font.color.rgb = accent_rgb
+        r_h.font.color.rgb = theme["heading"]
 
         # Section Intro Paragraph
         if sec.get("intro"):
@@ -441,7 +557,7 @@ async def generate_doc(req, background_tasks: BackgroundTasks):
             p_intro.paragraph_format.line_spacing = 1.2
             r_intro = p_intro.add_run(sec.get("intro"))
             r_intro.font.size = DocxPt(11)
-            r_intro.font.color.rgb = text_rgb if req.theme != "light" else DocxRGB(40, 40, 40)
+            r_intro.font.color.rgb = theme["text"]
 
         # Key Points (Bulleted with bold title)
         for pt in sec.get("key_points", []):
@@ -452,11 +568,11 @@ async def generate_doc(req, background_tasks: BackgroundTasks):
             r_bt = bp.add_run(f"{pt.get('title')}: ")
             r_bt.font.bold = True
             r_bt.font.size = DocxPt(10.5)
-            r_bt.font.color.rgb = accent_rgb
+            r_bt.font.color.rgb = theme["accent"]
 
             r_bd = bp.add_run(pt.get("description", ""))
             r_bd.font.size = DocxPt(10.5)
-            r_bd.font.color.rgb = text_rgb if req.theme != "light" else DocxRGB(50, 50, 50)
+            r_bd.font.color.rgb = theme["text"]
 
         # Takeaway note
         if sec.get("takeaway"):
@@ -466,7 +582,7 @@ async def generate_doc(req, background_tasks: BackgroundTasks):
             r_tk = p_tk.add_run(f"👉 {sec.get('takeaway')}")
             r_tk.font.size = DocxPt(10)
             r_tk.font.italic = True
-            r_tk.font.color.rgb = muted_rgb
+            r_tk.font.color.rgb = theme["muted"]
 
     # ── Conclusion ────────────────────────────────────────────────────────────
     if data.get("conclusion"):
@@ -474,15 +590,15 @@ async def generate_doc(req, background_tasks: BackgroundTasks):
         hc.paragraph_format.space_before = DocxPt(18)
         hc.paragraph_format.space_after = DocxPt(6)
         r_hc = hc.add_run("Strategic Summary & Recommendations")
-        r_hc.font.size = DocxPt(16)
+        r_hc.font.size = DocxPt(15)
         r_hc.font.bold = True
-        r_hc.font.color.rgb = accent_rgb
+        r_hc.font.color.rgb = theme["heading"]
 
         p_conc = doc.add_paragraph()
         p_conc.paragraph_format.line_spacing = 1.2
         r_conc = p_conc.add_run(data.get("conclusion"))
         r_conc.font.size = DocxPt(11)
-        r_conc.font.color.rgb = text_rgb if req.theme != "light" else DocxRGB(40, 40, 40)
+        r_conc.font.color.rgb = theme["text"]
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")
     doc.save(tmp.name)
@@ -495,35 +611,29 @@ async def generate_doc(req, background_tasks: BackgroundTasks):
     )
 
 
-def clean_pdf_text(text: str) -> str:
-    if not text or not isinstance(text, str):
-        return ""
-    replacements = {
-        "\u2018": "'", "\u2019": "'",
-        "\u201c": '"', "\u201d": '"',
-        "\u2014": " - ", "\u2013": "-",
-        "\u2022": "*", "\u2026": "...",
-        "\u00a0": " ", "\u200b": "",
-        "\u200e": "", "\u200f": "",
-    }
-    for orig, repl in replacements.items():
-        text = text.replace(orig, repl)
-    return text.encode("latin-1", "replace").decode("latin-1")
-
-
-# ─── 3. PDF REPORT GENERATION (Professional Flowing Multi-Page Report) ────────
+# ─── 3. PDF REPORT GENERATION (Consistent Multi-Page Report) ──────────────────
 class DocuCraftPDF(FPDF):
     def __init__(self, theme_data, doc_title):
         super().__init__()
         self.theme = theme_data
         self.doc_title = clean_pdf_text(doc_title)
+        self.is_dark = theme_data.get("is_dark", False)
 
     def header(self):
+        # 1. Fill background of EVERY page automatically
+        if self.is_dark:
+            self.set_fill_color(*self.theme["bg"])
+            self.rect(0, 0, 210, 297, "F")
+        else:
+            self.set_fill_color(*self.theme["bg"])
+            self.rect(0, 0, 210, 297, "F")
+
+        # 2. Running Header on Page 2+
         if self.page_no() > 1:
             self.set_font("Helvetica", "I", 8)
             self.set_text_color(*self.theme["muted"])
-            self.cell(0, 8, f"{self.doc_title}  |  DocuCraft Technical Report", 0, 0, "L")
-            self.cell(0, 8, datetime.now().strftime("%B %Y"), 0, 1, "R")
+            self.cell(0, 7, f"{self.doc_title}  |  DocuCraft Technical Report", 0, 0, "L")
+            self.cell(0, 7, datetime.now().strftime("%B %Y"), 0, 1, "R")
             self.set_draw_color(*self.theme["border"])
             self.set_line_width(0.2)
             self.line(15, 14, 195, 14)
@@ -539,7 +649,7 @@ class DocuCraftPDF(FPDF):
 
 async def generate_pdf(req, background_tasks: BackgroundTasks):
     data = get_doc_ai_content(req.topic, req.slide_count)
-    theme = THEMES.get(req.theme, THEMES["dark"])
+    theme = PDF_THEMES.get(req.theme, PDF_THEMES["dark"])
 
     doc_title = clean_pdf_text(data.get("title", req.topic))
     pdf = DocuCraftPDF(theme, doc_title)
@@ -548,94 +658,87 @@ async def generate_pdf(req, background_tasks: BackgroundTasks):
     pdf.add_page()
 
     # ── Page 1 Header Banner ──────────────────────────────────────────────────
-    if req.theme != "light":
-        pdf.set_fill_color(*theme["bg"])
-        pdf.rect(0, 0, 210, 297, "F")
-
     # Category Pill
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(*theme["accent"])
     pdf.cell(0, 6, "TECHNICAL WHITEPAPER & EXECUTIVE REPORT", ln=True)
 
     # Document Main Title
-    pdf.set_font("Helvetica", "B", 22)
+    pdf.set_font("Helvetica", "B", 20)
     pdf.set_text_color(*theme["title"])
-    pdf.multi_cell(180, 9, doc_title)
+    pdf.multi_cell(180, 8.5, doc_title)
     pdf.ln(2)
 
     # Subtitle
-    pdf.set_font("Helvetica", "", 12)
+    pdf.set_font("Helvetica", "", 11)
     pdf.set_text_color(*theme["muted"])
-    pdf.multi_cell(180, 6, clean_pdf_text(data.get("subtitle", "Comprehensive Analysis and Architecture")))
-    pdf.ln(4)
+    pdf.multi_cell(180, 5.5, clean_pdf_text(data.get("subtitle", "Comprehensive Technical Overview")))
+    pdf.ln(3)
 
     # Decorative Divider Line
     pdf.set_draw_color(*theme["accent"])
     pdf.set_line_width(0.8)
     pdf.line(15, pdf.get_y(), 195, pdf.get_y())
-    pdf.ln(6)
+    pdf.ln(5)
 
     # Executive Summary Card
     exec_summary = data.get("executive_summary", "")
     if exec_summary:
-        pdf.set_fill_color(*theme["card_bg"])
-        pdf.set_draw_color(*theme["border"])
-        
         pdf.set_font("Helvetica", "B", 10)
         pdf.set_text_color(*theme["accent"])
         pdf.cell(0, 6, "EXECUTIVE SUMMARY", ln=True)
 
-        pdf.set_font("Helvetica", "", 10)
+        pdf.set_font("Helvetica", "", 9.5)
         pdf.set_text_color(*theme["text"])
-        pdf.multi_cell(180, 5.5, clean_pdf_text(exec_summary))
-        pdf.ln(6)
+        pdf.multi_cell(180, 5, clean_pdf_text(exec_summary))
+        pdf.ln(5)
 
     # ── Sections Rendering ────────────────────────────────────────────────────
     for sec in data.get("sections", []):
         # Section Heading
-        pdf.set_font("Helvetica", "B", 14)
-        pdf.set_text_color(*theme["accent"])
-        pdf.cell(0, 8, clean_pdf_text(sec.get("heading", "Section")), ln=True)
+        pdf.set_font("Helvetica", "B", 13)
+        pdf.set_text_color(*theme["heading"])
+        pdf.cell(0, 7.5, clean_pdf_text(sec.get("heading", "Section")), ln=True)
 
         # Section Intro Paragraph
         if sec.get("intro"):
-            pdf.set_font("Helvetica", "", 10)
+            pdf.set_font("Helvetica", "", 9.5)
             pdf.set_text_color(*theme["text"])
-            pdf.multi_cell(180, 5.5, clean_pdf_text(sec.get("intro")))
-            pdf.ln(3)
+            pdf.multi_cell(180, 5, clean_pdf_text(sec.get("intro")))
+            pdf.ln(2.5)
 
         # Key Points List
         for pt in sec.get("key_points", []):
-            pdf.set_font("Helvetica", "B", 10)
-            pdf.set_text_color(*theme["title"])
-            pdf.cell(5, 5.5, "-", 0, 0)
-            pdf.cell(0, 5.5, clean_pdf_text(f"{pt.get('title')}: "), ln=True)
+            pdf.set_font("Helvetica", "B", 9.5)
+            pdf.set_text_color(*theme["accent"])
+            pdf.cell(5, 5, "-", 0, 0)
+            pdf.cell(0, 5, clean_pdf_text(f"{pt.get('title')}: "), ln=True)
 
             pdf.set_font("Helvetica", "", 9.5)
             pdf.set_text_color(*theme["text"])
             pdf.set_x(20)
-            pdf.multi_cell(175, 5, clean_pdf_text(pt.get("description", "")))
-            pdf.ln(2)
+            pdf.multi_cell(175, 4.8, clean_pdf_text(pt.get("description", "")))
+            pdf.ln(1.5)
 
         # Takeaway callout
         if sec.get("takeaway"):
             pdf.set_font("Helvetica", "I", 9)
             pdf.set_text_color(*theme["muted"])
             pdf.set_x(15)
-            pdf.multi_cell(180, 5, clean_pdf_text(f">> {sec.get('takeaway')}"))
-            pdf.ln(4)
+            pdf.multi_cell(180, 4.8, clean_pdf_text(f">> {sec.get('takeaway')}"))
+            pdf.ln(3)
 
         pdf.ln(2)
 
     # ── Conclusion ────────────────────────────────────────────────────────────
     if data.get("conclusion"):
-        pdf.set_font("Helvetica", "B", 13)
-        pdf.set_text_color(*theme["accent"])
-        pdf.cell(0, 7, "Summary & Strategic Takeaways", ln=True)
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.set_text_color(*theme["heading"])
+        pdf.cell(0, 6.5, "Summary & Strategic Takeaways", ln=True)
 
-        pdf.set_font("Helvetica", "", 10)
+        pdf.set_font("Helvetica", "", 9.5)
         pdf.set_text_color(*theme["text"])
-        pdf.multi_cell(180, 5.5, clean_pdf_text(data.get("conclusion")))
+        pdf.multi_cell(180, 5, clean_pdf_text(data.get("conclusion")))
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(tmp.name)
