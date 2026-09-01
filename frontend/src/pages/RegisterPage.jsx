@@ -1,145 +1,196 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Sparkles, Mail, Lock, UserPlus, Loader } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
-import api from "../api";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, FileText, Download, Shield } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
+import api from '../api';
+import Logo from '../components/ui/Logo';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+
+const STRENGTH_MAP = [
+  { color: 'transparent',    label: '' },
+  { color: 'var(--error)',   label: 'Weak' },
+  { color: 'var(--warning)', label: 'Fair' },
+  { color: 'var(--success)', label: 'Strong' },
+];
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
-  const [email,    setEmail]    = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm,  setConfirm]  = useState("");
+  const navigate  = useNavigate();
+  const [email,    setEmail]    = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm,  setConfirm]  = useState('');
   const [loading,  setLoading]  = useState(false);
-  const [focused,  setFocused]  = useState(null);
+
+  const strengthScore  = password.length >= 12 ? 3 : password.length >= 8 ? 2 : password.length >= 4 ? 1 : 0;
+  const strength       = STRENGTH_MAP[strengthScore];
+  const confirmError   = confirm && confirm !== password ? "Passwords don't match" : '';
 
   async function handleRegister(e) {
     e.preventDefault();
-    if (!email || !password || !confirm) { toast.error("Please fill in all fields"); return; }
-    if (password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    if (!email || !password || !confirm) { toast.error('Please fill in all fields'); return; }
+    if (password.length < 8) { toast.error('Password must be at least 8 characters'); return; }
     if (password !== confirm) { toast.error("Passwords don't match"); return; }
     setLoading(true);
     try {
-      const res = await api.post("/auth/register", { email, password });
-      localStorage.setItem("token",     res.data.access_token);
-      localStorage.setItem("userEmail", email);
-      toast.success("Registration successful!");
-      navigate("/app");
+      const res = await api.post('/auth/register', { email, password });
+      localStorage.setItem('token',     res.data.access_token);
+      localStorage.setItem('userEmail', email);
+      toast.success('Account created!');
+      navigate('/app');
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Registration failed. Try again.");
+      toast.error(err.response?.data?.detail || 'Registration failed. Try again.');
     } finally {
       setLoading(false);
     }
   }
 
-  const inputStyle = (name) => ({
-    width: "100%",
-    background: "#0a0a0f",
-    border: `1px solid ${focused === name ? "#00d4ff" : "#ffffff20"}`,
-    borderRadius: "10px",
-    padding: "13px 16px 13px 44px",
-    color: "#fff",
-    fontSize: "1rem",
-    outline: "none",
-    transition: "border-color 0.2s",
-    boxSizing: "border-box",
-  });
-
-  const strengthScore = password.length >= 12 ? 3 : password.length >= 8 ? 2 : password.length >= 4 ? 1 : 0;
-  const strengthColor = ["#333", "#ef4444", "#f59e0b", "#00e676"][strengthScore];
-  const strengthLabel = ["", "Weak", "Fair", "Strong"][strengthScore];
-
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+    <div className="auth-page">
       <Toaster position="top-right" />
 
-      {/* Logo */}
-      <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-        <div 
-          onClick={() => navigate("/")}
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "0.5rem", cursor: "pointer" }}
-        >
-          <Sparkles size={28} color="#00d4ff" />
-          <h1 style={{ fontSize: "2.2rem", fontWeight: "700", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            DocuCraft
-          </h1>
+      {/* ── Left: brand story panel ─────────────────────────────────────── */}
+      <div className="auth-brand-panel">
+        <div className="auth-brand-logo" onClick={() => navigate('/')}>
+          <Logo size={22} />
+          <span className="auth-brand-wordmark">DocuCraft</span>
         </div>
-        <p style={{ color: "#666", fontSize: "0.95rem" }}>Create your account and start generating</p>
+
+        <div className="auth-brand-main">
+          <h2 className="auth-brand-quote">
+            Start building your<br />document library.
+          </h2>
+          <p className="auth-brand-desc">
+            Every generation is saved to your history. Revisit, regenerate,
+            and download past documents in seconds.
+          </p>
+
+          <div className="auth-brand-bullets">
+            <div className="auth-bullet">
+              <div className="auth-bullet-icon">
+                <FileText size={14} strokeWidth={1.5} />
+              </div>
+              <p className="auth-bullet-text">
+                <strong>Unlimited generations</strong> — create as many
+                documents as you need, no cap.
+              </p>
+            </div>
+            <div className="auth-bullet">
+              <div className="auth-bullet-icon">
+                <Download size={14} strokeWidth={1.5} />
+              </div>
+              <p className="auth-bullet-text">
+                <strong>History & re-generate</strong> — every generation
+                saved with its exact settings.
+              </p>
+            </div>
+            <div className="auth-bullet">
+              <div className="auth-bullet-icon">
+                <Shield size={14} strokeWidth={1.5} />
+              </div>
+              <p className="auth-bullet-text">
+                <strong>Secure account</strong> — JWT authentication,
+                bcrypt-hashed passwords.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Card */}
-      <div style={{ background: "#13131a", border: "1px solid #ffffff15", borderRadius: "18px", padding: "2.5rem", width: "100%", maxWidth: "420px" }}>
-        <h2 style={{ color: "#fff", fontSize: "1.4rem", fontWeight: "600", marginBottom: "1.8rem", textAlign: "center" }}>Create account</h2>
+      {/* ── Right: form panel ───────────────────────────────────────────── */}
+      <div className="auth-form-panel">
+        <div className="auth-form-card">
 
-        <form onSubmit={handleRegister}>
-          {/* Email */}
-          <div style={{ marginBottom: "1.2rem", position: "relative" }}>
-            <Mail size={16} color={focused === "email" ? "#00d4ff" : "#555"} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", transition: "color 0.2s" }} />
-            <input
+          {/* Mobile logo — only visible when brand panel is hidden */}
+          <div
+            className="auth-mobile-logo"
+            onClick={() => navigate('/')}
+          >
+            <Logo size={20} />
+            DocuCraft
+          </div>
+
+          <div className="auth-form-header">
+            <h1 className="auth-form-title">
+              Create your<br />workspace.
+            </h1>
+            <p className="auth-form-subtitle">
+              Free to use. No credit card required.
+            </p>
+          </div>
+
+          <form className="auth-form" onSubmit={handleRegister}>
+            <Input
+              id="email"
+              label="Email address"
               type="email"
-              placeholder="Email address"
+              placeholder="you@example.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              onFocus={() => setFocused("email")}
-              onBlur={() => setFocused(null)}
-              style={inputStyle("email")}
+              icon={<Mail size={15} />}
+              autoComplete="email"
             />
-          </div>
 
-          {/* Password */}
-          <div style={{ marginBottom: "0.5rem", position: "relative" }}>
-            <Lock size={16} color={focused === "password" ? "#00d4ff" : "#555"} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", transition: "color 0.2s" }} />
-            <input
-              type="password"
-              placeholder="Password (min 8 characters)"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onFocus={() => setFocused("password")}
-              onBlur={() => setFocused(null)}
-              style={inputStyle("password")}
-            />
-          </div>
-
-          {/* Password strength bar */}
-          {password.length > 0 && (
-            <div style={{ marginBottom: "1.2rem" }}>
-              <div style={{ height: "3px", background: "#ffffff10", borderRadius: "2px", marginBottom: "4px" }}>
-                <div style={{ height: "100%", width: `${(strengthScore / 3) * 100}%`, background: strengthColor, borderRadius: "2px", transition: "width 0.3s, background 0.3s" }} />
-              </div>
-              <p style={{ fontSize: "0.75rem", color: strengthColor, textAlign: "right" }}>{strengthLabel}</p>
+            {/* Password + strength bar */}
+            <div>
+              <Input
+                id="password"
+                label="Password"
+                type="password"
+                placeholder="Min. 8 characters"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                icon={<Lock size={15} />}
+                autoComplete="new-password"
+              />
+              {password.length > 0 && (
+                <div className="pw-strength" style={{ marginTop: 'var(--sp-2)' }}>
+                  <div className="pw-strength-bar-track">
+                    <div
+                      className="pw-strength-bar-fill"
+                      style={{
+                        width:      `${(strengthScore / 3) * 100}%`,
+                        background: strength.color,
+                      }}
+                    />
+                  </div>
+                  <p
+                    className="pw-strength-label"
+                    style={{ color: strength.color }}
+                  >
+                    {strength.label}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Confirm Password */}
-          <div style={{ marginBottom: "1.8rem", position: "relative" }}>
-            <Lock size={16} color={focused === "confirm" ? "#00d4ff" : "#555"} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", transition: "color 0.2s" }} />
-            <input
+            <Input
+              id="confirm"
+              label="Confirm password"
               type="password"
-              placeholder="Confirm password"
+              placeholder="••••••••"
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
-              onFocus={() => setFocused("confirm")}
-              onBlur={() => setFocused(null)}
-              style={{ ...inputStyle("confirm"), border: `1px solid ${confirm && confirm !== password ? "#ef4444" : focused === "confirm" ? "#00d4ff" : "#ffffff20"}` }}
+              icon={<Lock size={15} />}
+              error={confirmError}
+              autoComplete="new-password"
             />
-          </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: loading ? "#1a3a40" : "linear-gradient(135deg, #00d4ff, #7b2fff)", color: "#fff", fontSize: "1rem", fontWeight: "600", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "opacity 0.2s" }}
-          >
-            {loading ? <Loader size={18} className="spin" /> : <UserPlus size={18} />}
-            {loading ? "Creating account..." : "Create Account"}
-          </button>
-        </form>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={loading}
+            >
+              {loading ? 'Creating account…' : 'Create account'}
+            </Button>
+          </form>
 
-        <p style={{ textAlign: "center", color: "#555", fontSize: "0.9rem", marginTop: "1.5rem" }}>
-          Already have an account?{" "}
-          <Link to="/login" style={{ color: "#00d4ff", textDecoration: "none", fontWeight: "500" }}>
-            Sign in
-          </Link>
-        </p>
+          <p className="auth-form-footer">
+            Already have an account?{' '}
+            <Link to="/login">Sign in</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

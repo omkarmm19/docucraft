@@ -1,13 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <defs>
-    <linearGradient id="docuGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00d4ff" />
-      <stop offset="100%" stop-color="#7b2fff" />
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="16" fill="#13131a" />
-  <path d="M20 16H36L44 24V48C44 50.2091 42.2091 52 40 52H20C17.7909 52 16 50.2091 16 48V20C16 17.7909 17.7909 16 20 16Z" stroke="url(#docuGrad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M36 16V24H44" stroke="url(#docuGrad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="24" y1="32" x2="36" y2="32" stroke="url(#docuGrad)" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="24" y1="40" x2="32" y2="40" stroke="url(#docuGrad)" stroke-width="3.5" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- Back document (dimmed outline) -->
+  <rect
+    x="7" y="4.5"
+    width="13" height="16"
+    rx="2.5"
+    stroke="#E8A020"
+    stroke-width="1.75"
+    opacity="0.45"
+  />
+
+  <!-- Front document with corner fold -->
+  <path
+    d="M4 2.5h9l4.5 4.5v12.5a2.5 2.5 0 01-2.5 2.5H4a2.5 2.5 0 01-2.5-2.5v-14.5a2.5 2.5 0 012.5-2.5z"
+    stroke="#E8A020"
+    stroke-width="2"
+    stroke-linejoin="round"
+    fill="#0D0D0D"
+  />
+
+  <!-- Corner fold flap -->
+  <path
+    d="M13 2.5l4.5 4.5H13V2.5z"
+    fill="#E8A020"
+    opacity="0.75"
+  />
+
+  <!-- Document content lines -->
+  <line x1="5" y1="12" x2="13.5" y2="12" stroke="#E8A020" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="5" y1="15.5" x2="11" y2="15.5" stroke="#E8A020" stroke-width="1.75" stroke-linecap="round"/>
 </svg>

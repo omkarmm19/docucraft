@@ -1,122 +1,321 @@
-import { useNavigate } from "react-router-dom";
-import { Sparkles, Presentation, Zap, Shield, ArrowRight } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, FileText, Download, Palette } from 'lucide-react';
+import Navbar from '../components/ui/Navbar';
+import Button from '../components/ui/Button';
+import Logo from '../components/ui/Logo';
 
+/* ─── Hero Mockup ────────────────────────────────────────────────────────────
+   A hand-built CSS/div wireframe of a slide deck output panel.
+   Abstract rectangles + bars + lines styled with design tokens.
+   No AI-generated image — no wrong text rendering risk.
+   ─────────────────────────────────────────────────────────────────────────── */
+function HeroMockup() {
+  return (
+    <div className="hero-visual">
+      <div className="hm-window">
+
+        {/* Window chrome */}
+        <div className="hm-chrome">
+          <div className="hm-dots">
+            <span className="hm-dot hm-dot-r" />
+            <span className="hm-dot hm-dot-y" />
+            <span className="hm-dot hm-dot-g" />
+          </div>
+          <span className="hm-filename">quarterly_review.pptx</span>
+          <span className="badge badge-ppt">PPT</span>
+        </div>
+
+        {/* Body: thumbnail strip + main slide */}
+        <div className="hm-body">
+
+          {/* Slide thumbnails */}
+          <div className="hm-thumbstrip">
+            {[0, 1, 2, 3, 4].map(i => (
+              <div
+                key={i}
+                className={`hm-thumb${i === 0 ? ' hm-thumb-active' : ''}`}
+              >
+                <div className="hm-tbar" />
+                <div className="hm-tbar hm-tbar-short" />
+                <div className="hm-trect" />
+              </div>
+            ))}
+          </div>
+
+          {/* Main slide view */}
+          <div className="hm-slide">
+            <div className="hm-slide-title-bar" />
+            <div className="hm-slide-sub-bar" />
+
+            <div className="hm-slide-body">
+              {/* Bar chart — abstract data visualization */}
+              <div className="hm-chart">
+                <div className="hm-cbar"               style={{ height: '52%' }} />
+                <div className="hm-cbar hm-cbar-accent" style={{ height: '80%' }} />
+                <div className="hm-cbar"               style={{ height: '38%' }} />
+                <div className="hm-cbar"               style={{ height: '66%' }} />
+                <div className="hm-cbar hm-cbar-accent" style={{ height: '90%' }} />
+              </div>
+
+              {/* Bullet list */}
+              <div className="hm-bullets">
+                {[1, 0.72, 1, 0.58].map((w, i) => (
+                  <div key={i} className="hm-bullet-row">
+                    <div className="hm-bul-dot" />
+                    <div className={`hm-bul-line${w < 1 ? ' hm-bul-line-sm' : ''}`} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Slide status footer */}
+            <div className="hm-slide-footer">
+              <span className="hm-page-num">01 / 12</span>
+              <span className="hm-gen-tag">
+                <span className="hm-pulse" />
+                Generated in 28s
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Format download row */}
+        <div className="hm-dl-row">
+          <div className="hm-dl-item hm-dl-ppt">PPT</div>
+          <div className="hm-dl-item hm-dl-doc">DOC</div>
+          <div className="hm-dl-item hm-dl-pdf">PDF</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Features data ──────────────────────────────────────────────────────── */
+const FEATURES = [
+  {
+    icon: <FileText size={18} strokeWidth={1.5} />,
+    title: 'Structured slide decks',
+    desc:  'Set a topic and slide count — DocuCraft handles outline, content, and layout. Exports as .pptx, ready for PowerPoint or Google Slides.',
+  },
+  {
+    icon: <Download size={18} strokeWidth={1.5} />,
+    title: 'Three ready-to-use formats',
+    desc:  'Every generation produces .pptx, .docx, and .pdf simultaneously — each formatted correctly for its use case.',
+  },
+  {
+    icon: <Palette size={18} strokeWidth={1.5} />,
+    title: 'Custom visual themes',
+    desc:  'Choose from five built-in color themes, each tuned for readability and contrast across presentations and documents.',
+  },
+];
+
+/* ─── How it works steps ─────────────────────────────────────────────────── */
+const STEPS = [
+  {
+    num:  '01',
+    title: 'Describe',
+    desc: 'Type your topic, set the slide count, and pick a color theme. No template setup, no formatting decisions.',
+  },
+  {
+    num:  '02',
+    title: 'Generate',
+    desc: 'The engine writes structured content, organizes it into a slide hierarchy, and applies your chosen visual theme.',
+  },
+  {
+    num:  '03',
+    title: 'Download',
+    desc: 'Your file is ready in seconds. Open it directly in PowerPoint, Word, or any PDF reader — no editing required.',
+  },
+];
+
+/* ─── Page ───────────────────────────────────────────────────────────────── */
 export default function LandingPage() {
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem("token");
+  const isAuth   = !!localStorage.getItem('token');
+  const ctaPath  = isAuth ? '/app' : '/register';
+  const ctaLabel = isAuth ? 'Open app' : 'Start for free';
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0f", color: "#fff", fontFamily: "'Inter', sans-serif" }}>
-      
-      {/* Navbar */}
-      <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem 3rem", borderBottom: "1px solid #ffffff15", background: "rgba(10, 10, 15, 0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
-        <div 
-          onClick={() => navigate("/")}
-          style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
-        >
-          <Sparkles size={24} color="#00d4ff" />
-          <span style={{ fontSize: "1.5rem", fontWeight: "700", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            DocuCraft
-          </span>
-        </div>
-        <div style={{ display: "flex", gap: "16px" }}>
-          {!isAuthenticated ? (
-            <>
-              <button 
-                onClick={() => navigate("/login")}
-                style={{ padding: "10px 20px", borderRadius: "8px", border: "1px solid #ffffff30", background: "transparent", color: "#fff", cursor: "pointer", fontWeight: "500", transition: "all 0.2s" }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#00d4ff"; e.currentTarget.style.color = "#00d4ff"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#ffffff30"; e.currentTarget.style.color = "#fff"; }}
-              >
-                Log In
-              </button>
-              <button 
-                onClick={() => navigate("/register")}
-                style={{ padding: "10px 20px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", color: "#fff", cursor: "pointer", fontWeight: "600", transition: "opacity 0.2s" }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-              >
-                Sign Up
-              </button>
-            </>
-          ) : (
-            <button 
-              onClick={() => navigate("/app")}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 24px", borderRadius: "8px", border: "none", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", color: "#fff", cursor: "pointer", fontWeight: "600" }}
+    <div className="landing-page">
+      <Navbar />
+
+      {/* ── Hero (asymmetric 2-col grid) ────────────────────────────────── */}
+      <section className="hero-section">
+        <div className="hero-content">
+          <div className="hero-label">AI Document Engine</div>
+
+          <h1 className="hero-h1">
+            From prompt to<br />
+            document,{' '}
+            <em>instantly.</em>
+          </h1>
+
+          <p className="hero-body">
+            Describe any topic. Set your format. DocuCraft structures,
+            writes, and exports your PowerPoint, Word document, or PDF —
+            polished and ready to share.
+          </p>
+
+          <div className="hero-ctas">
+            <Button
+              variant="primary"
+              size="lg"
+              iconRight={<ArrowRight size={15} />}
+              onClick={() => navigate(ctaPath)}
             >
-              Go to Dashboard <ArrowRight size={18} />
-            </button>
-          )}
+              {ctaLabel}
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() =>
+                document.getElementById('howto')?.scrollIntoView({ behavior: 'smooth' })
+              }
+            >
+              See how it works
+            </Button>
+          </div>
         </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section style={{ padding: "8rem 2rem", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "999px", background: "#ffffff0a", border: "1px solid #ffffff15", color: "#00d4ff", fontSize: "0.875rem", fontWeight: "500", marginBottom: "2rem" }}>
-          <Sparkles size={16} /> Intelligent Document Generation Platform
+        <HeroMockup />
+      </section>
+
+      {/* ── Stats bar ───────────────────────────────────────────────────── */}
+      <div className="stats-bar">
+        <div className="stats-inner">
+          <div className="stat-item">
+            <div className="stat-value">PPT · DOC · PDF</div>
+            <div className="stat-label">Three output formats</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-value">~30 seconds</div>
+            <div className="stat-label">Typical generation time</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-value">4 – 15 slides</div>
+            <div className="stat-label">Configurable document depth</div>
+          </div>
         </div>
-        <h1 style={{ fontSize: "4.5rem", fontWeight: "800", lineHeight: "1.1", marginBottom: "1.5rem", maxWidth: "900px" }}>
-          Generate beautiful documents <br />
-          <span style={{ background: "linear-gradient(135deg, #00d4ff, #7b2fff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>in seconds.</span>
-        </h1>
-        <p style={{ fontSize: "1.25rem", color: "#a1a1aa", maxWidth: "600px", marginBottom: "3rem", lineHeight: "1.6" }}>
-          Instantly transform any topic into fully formatted PowerPoint presentations, Word documents, or PDFs. Just type a prompt and download your file.
+      </div>
+
+      {/* ── Features (bordered grid, not floating cards) ─────────────────── */}
+      <section id="features" className="features-section">
+        <div className="section-header">
+          <p className="section-eyebrow">Capabilities</p>
+          <h2 className="section-title">What DocuCraft builds for you</h2>
+        </div>
+
+        <div className="features-grid">
+          {FEATURES.map((f, i) => (
+            <div key={i} className="feature-cell">
+              <div className="feature-icon-wrap">{f.icon}</div>
+              <h3 className="feature-title">{f.title}</h3>
+              <p className="feature-desc">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── How it works (numbered steps, horizontal) ────────────────────── */}
+      <div className="howto-section">
+        <div className="howto-inner" id="howto">
+          <div className="section-header">
+            <p className="section-eyebrow">Process</p>
+            <h2 className="section-title">Three steps, thirty seconds</h2>
+          </div>
+
+          <div className="steps-row">
+            {STEPS.map(s => (
+              <div key={s.num} className="step-item">
+                <div className="step-num-circle">{s.num}</div>
+                <h3 className="step-title">{s.title}</h3>
+                <p className="step-desc">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bottom CTA ──────────────────────────────────────────────────── */}
+      <section className="cta-section">
+        <h2 className="cta-title">
+          Stop formatting.<br />Start delivering.
+        </h2>
+        <p className="cta-desc">
+          DocuCraft handles structure, content, and design so you can
+          focus on what the document is actually for.
         </p>
-        
-        <button 
-          onClick={() => navigate(isAuthenticated ? "/app" : "/register")}
-          style={{ display: "flex", alignItems: "center", gap: "10px", padding: "16px 36px", borderRadius: "12px", border: "none", background: "linear-gradient(135deg, #00d4ff, #7b2fff)", color: "#fff", cursor: "pointer", fontSize: "1.1rem", fontWeight: "600", boxShadow: "0 10px 30px -10px rgba(0, 212, 255, 0.5)", transition: "transform 0.2s" }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"}
-          onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+        <Button
+          variant="primary"
+          size="lg"
+          iconRight={<ArrowRight size={15} />}
+          onClick={() => navigate(ctaPath)}
         >
-          Start Generating for Free <ArrowRight size={20} />
-        </button>
+          {ctaLabel}
+        </Button>
       </section>
 
-      {/* Features Section */}
-      <section style={{ padding: "5rem 2rem", background: "#0f0f15", borderTop: "1px solid #ffffff10" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <h2 style={{ fontSize: "2.5rem", fontWeight: "700", marginBottom: "1rem" }}>Everything you need</h2>
-            <p style={{ color: "#888", fontSize: "1.1rem" }}>Generate, download, and manage your documents effortlessly.</p>
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
+      <footer className="landing-footer">
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <div className="footer-logo">
+              <Logo size={20} />
+              <span className="footer-wordmark">DocuCraft</span>
+            </div>
+            <p className="footer-tagline">
+              AI-powered document generation.<br />
+              PPT, DOC, and PDF in seconds.
+            </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
-            
-            {/* Card 1 */}
-            <div style={{ background: "#15151e", border: "1px solid #ffffff10", borderRadius: "16px", padding: "2rem", transition: "all 0.3s" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#00d4ff15", color: "#00d4ff", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.5rem" }}>
-                <Presentation size={24} />
-              </div>
-              <h3 style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.75rem" }}>Stunning Presentations</h3>
-              <p style={{ color: "#a1a1aa", lineHeight: "1.6" }}>Generate 4 to 15 slide PowerPoint presentations with custom color themes tailored to your topic.</p>
-            </div>
+          <div className="footer-col">
+            <span className="footer-col-title">Product</span>
+            <span
+              className="footer-link"
+              onClick={() => navigate('/app')}
+            >
+              Generator
+            </span>
+            <span
+              className="footer-link"
+              onClick={() => navigate('/history')}
+            >
+              History
+            </span>
+            <span
+              className="footer-link"
+              onClick={() =>
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+              }
+            >
+              Formats
+            </span>
+          </div>
 
-            {/* Card 2 */}
-            <div style={{ background: "#15151e", border: "1px solid #ffffff10", borderRadius: "16px", padding: "2rem" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#7b2fff15", color: "#7b2fff", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.5rem" }}>
-                <Zap size={24} />
-              </div>
-              <h3 style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.75rem" }}>Lightning Fast Generation</h3>
-              <p style={{ color: "#a1a1aa", lineHeight: "1.6" }}>High-performance generative pipeline ensuring ultra-fast output and instant document delivery.</p>
-            </div>
-
-            {/* Card 3 */}
-            <div style={{ background: "#15151e", border: "1px solid #ffffff10", borderRadius: "16px", padding: "2rem" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#00e67815", color: "#00e678", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.5rem" }}>
-                <Shield size={24} />
-              </div>
-              <h3 style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.75rem" }}>Secure & Private</h3>
-              <p style={{ color: "#a1a1aa", lineHeight: "1.6" }}>Your data is protected with JWT authentication and secure bcrypt password hashing.</p>
-            </div>
-
+          <div className="footer-col">
+            <span className="footer-col-title">Built by</span>
+            <a
+              className="footer-link"
+              href="https://github.com/omkarmm19"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>
+            <span
+              className="footer-link"
+              onClick={() => navigate('/register')}
+            >
+              Sign up free
+            </span>
           </div>
         </div>
-      </section>
 
-      {/* Footer */}
-      <footer style={{ padding: "3rem 2rem", textAlign: "center", borderTop: "1px solid #ffffff10", color: "#555" }}>
-        <p>© 2026 DocuCraft by Omkar Mahesh. All rights reserved.</p>
+        <div className="footer-bottom">
+          <span className="footer-copy">© 2026 DocuCraft by Omkar Mahesh.</span>
+          <span className="footer-copy">All rights reserved.</span>
+        </div>
       </footer>
     </div>
   );
