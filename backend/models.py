@@ -34,7 +34,7 @@ class GenerationHistory(Base):
 
 class GenerateRequest(BaseModel):
     topic:       str
-    slide_count: int = Field(default=8, ge=4, le=15)
+    slide_count: int = Field(default=8, ge=1, le=25)
     theme:       str = "dark"
 
 

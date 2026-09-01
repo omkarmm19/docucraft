@@ -16,12 +16,17 @@ if not DATABASE_URL.startswith(("postgresql://", "postgresql+", "sqlite://")):
     print("WARNING: No valid DATABASE_URL found — falling back to SQLite (data will reset on redeploy)")
     DATABASE_URL = "sqlite:///./docucraft.db"
 
+def _get_engine(url: str):
+    if "sqlite" in url:
+        return create_engine(url, connect_args={"check_same_thread": False})
+    return create_engine(url, pool_pre_ping=True, pool_recycle=300)
+
 try:
-    engine = create_engine(DATABASE_URL)
+    engine = _get_engine(DATABASE_URL)
 except Exception as e:
     print(f"WARNING: Could not connect to database ({e}) — falling back to SQLite")
     DATABASE_URL = "sqlite:///./docucraft.db"
-    engine = create_engine(DATABASE_URL)
+    engine = _get_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

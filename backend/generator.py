@@ -24,27 +24,48 @@ THEMES = {
     "light":  {"bg": (245, 245, 245),"title": (30, 30, 30),    "text": (60, 60, 60)},
 }
 
+PRIMARY_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+FALLBACK_MODEL = "openai/gpt-oss-20b"
+
+
 def get_ai_content(topic: str, slide_count: int):
     prompt = f"""
 Create a {slide_count}-slide presentation on: {topic}
 
-Return ONLY a JSON array like this (no extra text):
+Return ONLY a valid JSON array like this (no extra commentary, explanations or text):
 [
-  {{"title": "Slide Title", "points": ["point 1", "point 2", "point 3"]}},
-  ...
+  {{"title": "Slide Title", "points": ["point 1", "point 2", "point 3"]}}
 ]
 """
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
-    )
+    try:
+        response = client.chat.completions.create(
+            model=PRIMARY_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+    except Exception as e:
+        print(f"Primary model {PRIMARY_MODEL} failed ({e}), trying fallback {FALLBACK_MODEL}")
+        response = client.chat.completions.create(
+            model=FALLBACK_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+
     raw = response.choices[0].message.content.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
+    if "```" in raw:
+        parts = raw.split("```")
+        raw = parts[1] if len(parts) > 1 else raw
         if raw.startswith("json"):
             raw = raw[4:]
-    return json.loads(raw.strip())
+
+    # Strip any potential leading/trailing non-json chars
+    raw = raw.strip()
+    first_bracket = raw.find("[")
+    last_bracket = raw.rfind("]")
+    if first_bracket != -1 and last_bracket != -1:
+        raw = raw[first_bracket:last_bracket + 1]
+
+    return json.loads(raw)
 
 
 async def generate_ppt(req, background_tasks: BackgroundTasks):
